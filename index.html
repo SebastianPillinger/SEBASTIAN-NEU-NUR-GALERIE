@@ -92,6 +92,7 @@
             max-height: 90vh;
             object-fit: contain;
             border-radius: 5px;
+            transition: none !important; /* Keine Übergänge für abrupte Wechsel */
         }
 
         .lightbox-arrow {
@@ -187,26 +188,34 @@
             document.body.style.overflow = "auto";
         }
 
-        function changeImage(n) {
-            if (isAnimating) return;
-            isAnimating = true;
+        function changeImage(n, animate = false) {
+            const newIndex = (currentIndex + n + images.length) % images.length;
             
-            currentIndex = (currentIndex + n + images.length) % images.length;
+            if(animate) {
+                isAnimating = true;
+                sliderContainer.style.transition = 'transform 0.3s var(--transition-timing)';
+            } else {
+                sliderContainer.style.transition = 'none';
+            }
+
+            currentIndex = newIndex;
             currentPosition = -currentIndex * 100;
-            
-            sliderContainer.style.transition = 'transform 0.3s var(--transition-timing)';
             sliderContainer.style.transform = `translateX(${currentPosition}%)`;
-            
-            sliderContainer.addEventListener('transitionend', () => {
-                isAnimating = false;
+
+            if(animate) {
+                sliderContainer.addEventListener('transitionend', () => {
+                    isAnimating = false;
+                    preloadNeighbors(currentIndex);
+                }, { once: true });
+            } else {
                 preloadNeighbors(currentIndex);
-            }, { once: true });
+            }
         }
 
         // Touch Handling
         function handleTouchStart(e) {
-            if (isAnimating) return;
             touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
             sliderContainer.style.transition = 'none';
         }
 
@@ -214,39 +223,47 @@
             if (isAnimating) return;
             
             const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
             const deltaX = touchX - touchStartX;
+            const deltaY = touchY - touchStartY;
+
+            // Vertikales Wischen priorisieren
+            if(Math.abs(deltaY) > Math.abs(deltaX)) {
+                const dampenedDelta = deltaY * 0.3;
+                sliderContainer.style.transform = `translateY(${dampenedDelta}px)`;
+                return;
+            }
+
+            // Horizontales Wischen
             const movePercentage = (deltaX / window.innerWidth) * 100;
             let newPosition = currentPosition + movePercentage;
             
-            // Endlos-Scroll Logik
-            if (currentIndex === 0 && newPosition > 0) {
-                newPosition = -images.length * 100 + movePercentage;
-            }
-            if (currentIndex === images.length - 1 && newPosition < -currentIndex * 100) {
-                newPosition = 100 + movePercentage;
-            }
+            // Endlos-Loop Logik
+            if(currentIndex === 0 && newPosition > 0) newPosition = -images.length * 100 + movePercentage;
+            if(currentIndex === images.length-1 && newPosition < -currentIndex * 100) newPosition = 100 + movePercentage;
             
             sliderContainer.style.transform = `translateX(${newPosition}%)`;
         }
 
         function handleTouchEnd(e) {
-            if (isAnimating) return;
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            const deltaX = endX - touchStartX;
+            const deltaY = endY - touchStartY;
             
-            const endPos = e.changedTouches[0].clientX;
-            const deltaX = endPos - touchStartX;
-            const absDelta = Math.abs(deltaX);
-            const threshold = window.innerWidth * 0.1;
-            
-            sliderContainer.style.transition = 'transform 0.3s var(--transition-timing)';
-            
-            if (absDelta > threshold) {
-                const direction = deltaX > 0 ? -1 : 1;
-                currentIndex = (currentIndex + direction + images.length) % images.length;
+            // Vertikales Wischen (Schließen)
+            if(Math.abs(deltaY) > 100 && Math.abs(deltaY) > Math.abs(deltaX)) {
+                closeLightbox();
+                return;
             }
-            
-            currentPosition = -currentIndex * 100;
-            sliderContainer.style.transform = `translateX(${currentPosition}%)`;
-            preloadNeighbors(currentIndex);
+
+            // Horizontales Wischen (Bildwechsel)
+            if(Math.abs(deltaX) > window.innerWidth * 0.15) {
+                const direction = deltaX > 0 ? -1 : 1;
+                changeImage(direction, true); // Mit Animation
+            } else {
+                sliderContainer.style.transform = `translateX(${currentPosition}%)`;
+            }
         }
 
         // Hilfsfunktionen
@@ -263,13 +280,26 @@
         lightbox.addEventListener('touchend', handleTouchEnd);
         lightbox.addEventListener('click', (e) => e.target === lightbox && closeLightbox());
         
+        // Event-Listener Anpassungen
         document.addEventListener('keydown', (e) => {
-            if (lightbox.classList.contains('active')) {
-                if (e.key === 'ArrowLeft') changeImage(-1);
-                if (e.key === 'ArrowRight') changeImage(1);
-                if (e.key === 'Escape') closeLightbox();
+            if(lightbox.classList.contains('active')) {
+                if(e.key === 'ArrowLeft') changeImage(-1); // Ohne Animation
+                if(e.key === 'ArrowRight') changeImage(1); // Ohne Animation
+                if(e.key === 'Escape') closeLightbox();
             }
         });
+		
+		// Klick außerhalb schließt Lightbox
+        lightbox.addEventListener('click', (e) => {
+            if(e.target === lightbox) closeLightbox();
+        });
+		
+		// Pfeil-Buttons mit abruptem Wechsel
+        document.querySelector('.lightbox-arrow.left').onclick = () => changeImage(-1);
+        document.querySelector('.lightbox-arrow.right').onclick = () => changeImage(1);
+
+        
+		
     </script>
 </body>
 </html>

@@ -4,312 +4,272 @@
     <meta charset="UTF-8">
     <title>Sebastian Pillinger – Fotografie</title>
     <style>
-        /* Allgemeine Stile */
-:root {
-    --primary-color: #4CAF50;
-    --secondary-color: #45a049;
-    --dark-color: #2C2C2C;
-    --light-color: #f9f9f9;
-    --background-color: #1a1a1a;
-    --text-color: #f9f9f9;
-}
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #45a049;
+            --dark-color: #2C2C2C;
+            --light-color: #f9f9f9;
+            --background-color: #1a1a1a;
+            --text-color: #f9f9f9;
+            --transition-timing: cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
 
-html, body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-}
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
 
-body {
-    font-family: 'Playfair Display', serif;
-    margin: 0;
-    padding: 0;
-    color: var(--text-color);
-    background-color: var(--background-color);
-    line-height: 1.6;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
+        body {
+            font-family: 'Playfair Display', serif;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            line-height: 1.6;
+        }
 
-/* Portfolio */
-.portfolio-section {
-    background-color: var(--background-color);
-    padding: 40px;
-    border-radius: 5px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Flexible Spaltenbreite */
-    gap: 40px; /* Fester Abstand von 40px zwischen den Containern */
-    justify-content: center; /* Zentrieren des Rasters */
-}
+        /* Portfolio Section */
+        .portfolio-section {
+            padding: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
 
-.image-container {
-    position: relative;
-    overflow: hidden;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 100%; /* Container füllt die Spalte aus */
-    margin: 0; /* Margin zurücksetzen */
-    padding: 0; /* Padding zurücksetzen */
-}
+        .image-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-.image-container img {
-    width: 100%; /* Bild füllt die Breite des Containers aus */
-    height: auto; /* Höhe passt sich dem natürlichen Seitenverhältnis an */
-    border-radius: 5px;
-    transition: transform 0.3s ease, filter 0.3s ease;
-}
+        .image-container img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+            transition: transform 0.3s ease;
+        }
 
-.lightbox {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    touch-action: none; /* Verhindert Standard-Touch-Verhalten wie Scrollen */
-	overflow: hidden;
-}
+        /* Lightbox Styles */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            touch-action: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
 
-.lightbox.active {
-    display: flex;
-    opacity: 1;
-}
+        .lightbox.active {
+            display: flex;
+            opacity: 1;
+        }
 
-.lightbox img {
-    max-width: 90%;
-    max-height: 90%;
-    border-radius: 5px;
-	transition: transform 0.25s ease-out;
-    touch-action: none;
-    will-change: transform; /* Optimiert die Animation */
-	z-index: 1000;
-}
+        .slider-container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            will-change: transform;
+        }
 
-.slider-container {
-    display: flex;
-    height: 100%;
-    width: 100%;
-    will-change: transform;
-    transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
-}
+        .slider-item {
+            flex: 0 0 100%;
+            min-width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-.slider-item {
-    flex: 0 0 100%;
-    min-width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        .slider-item img {
+            max-width: 90%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 5px;
+        }
 
-.lightbox img.slide-left {
-    transform: translateX(-100%);
-    opacity: 0;
-}
+        .lightbox-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 5em;
+            cursor: pointer;
+            user-select: none;
+            padding: 10px 20px;
+            z-index: 1001;
+            transition: opacity 0.2s;
+        }
 
-.lightbox img.slide-right {
-    transform: translateX(100%);
-    opacity: 0;
-}
+        .lightbox-arrow:hover {
+            opacity: 0.8;
+        }
 
-.lightbox.active img {
-    transform: scale(1);
-}
-
-.lightbox-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    color: white;
-    font-size: 5em;
-    cursor: pointer;
-    user-select: none;
-    padding: 10px 20px;
-    z-index: 1001;
-}
-
-.lightbox-arrow.left {
-    left: 20px;
-}
-
-.lightbox-arrow.right {
-    right: 20px;
-}
-
-    </style>    
+        .lightbox-arrow.left { left: 20px; }
+        .lightbox-arrow.right { right: 20px; }
+    </style>
 </head>
-<body>  
-    <!-- Portfolio -->
+<body>
     <section id="portfolio">
         <h2>Portfolio</h2>
-        <div class="portfolio-section" id="portfolio-gallery">
-            <!-- Bilder werden dynamisch geladen -->
-        </div>
+        <div class="portfolio-section" id="portfolio-gallery"></div>
     </section>
-	
-	<div class="lightbox" id="lightbox">
-    <div class="slider-container" id="slider-container"></div>
-    <span class="lightbox-arrow left" onclick="event.stopPropagation(); changeImage(-1)">&#10094;</span>
-    <span class="lightbox-arrow right" onclick="event.stopPropagation(); changeImage(1)">&#10095;</span>
-</div>
-	
+
+    <div class="lightbox" id="lightbox">
+        <div class="slider-container" id="slider-container"></div>
+        <span class="lightbox-arrow left" onclick="event.stopPropagation(); changeImage(-1)">&#10094;</span>
+        <span class="lightbox-arrow right" onclick="event.stopPropagation(); changeImage(1)">&#10095;</span>
+    </div>
+
     <script>
-        // Dynamisches Laden der Portfolio-Bilder
-const portfolioData = [
-    { src: "bilder/linzm1.jpg", alt: "Linz-Marathon", images: ["bilder/linzm1.jpg", "bilder/linzm2.jpg", "bilder/linzm3.jpg"] },
-    { src: "bilder/rr1.jpg", alt: "Kasberg-Inferno", images: ["bilder/rr1.jpg", "bilder/rr2.jpg", "bilder/rr3.jpg", "bilder/rr4.jpg", "bilder/rr5.jpg"] },
-    { src: "bilder/hochzeit1.jpg", alt: "Hochzeitsfotografie", images: ["bilder/hochzeit1.jpg", "bilder/hochzeit2.jpg", "bilder/hochzeit3.jpg"] },
-    { src: "bilder/tiere1.jpg", alt: "Haustiere", images: ["bilder/tiere1.jpg", "bilder/tiere2.jpg", "bilder/tiere3.jpg", "bilder/tiere4.jpg", "bilder/tiere5.jpg", "bilder/tiere6.jpg", "bilder/tiere7.jpg", "bilder/tiere8.jpg"] },
-    { src: "bilder/wildlife1.jpg", alt: "Wildlife", images: ["bilder/wildlife1.jpg", "bilder/wildlife2.jpg", "bilder/wildlife3.jpg", "bilder/wildlife4.jpg", "bilder/wildlife5.jpg", "bilder/wildlife6.jpg"] },
-    { src: "bilder/party1.jpg", alt: "Partyfotografie", images: ["bilder/party1.jpg", "bilder/party2.jpg", "bilder/party3.jpg"] }
-];
+        // Portfolio-Daten und Initialisierung
+        const portfolioData = [
+            { src: "bilder/linzm1.jpg", alt: "Linz-Marathon", images: ["bilder/linzm1.jpg", "bilder/linzm2.jpg", "bilder/linzm3.jpg"] },
+            { src: "bilder/rr1.jpg", alt: "Kasberg-Inferno", images: ["bilder/rr1.jpg", "bilder/rr2.jpg", "bilder/rr3.jpg", "bilder/rr4.jpg", "bilder/rr5.jpg"] },
+            { src: "bilder/hochzeit1.jpg", alt: "Hochzeitsfotografie", images: ["bilder/hochzeit1.jpg", "bilder/hochzeit2.jpg", "bilder/hochzeit3.jpg"] },
+            { src: "bilder/tiere1.jpg", alt: "Haustiere", images: ["bilder/tiere1.jpg", "bilder/tiere2.jpg", "bilder/tiere3.jpg", "bilder/tiere4.jpg", "bilder/tiere5.jpg", "bilder/tiere6.jpg", "bilder/tiere7.jpg", "bilder/tiere8.jpg"] },
+            { src: "bilder/wildlife1.jpg", alt: "Wildlife", images: ["bilder/wildlife1.jpg", "bilder/wildlife2.jpg", "bilder/wildlife3.jpg", "bilder/wildlife4.jpg", "bilder/wildlife5.jpg", "bilder/wildlife6.jpg"] },
+            { src: "bilder/party1.jpg", alt: "Partyfotografie", images: ["bilder/party1.jpg", "bilder/party2.jpg", "bilder/party3.jpg"] }
+        ];
 
-const portfolioGallery = document.getElementById("portfolio-gallery");
+        // DOM Elemente
+        const portfolioGallery = document.getElementById("portfolio-gallery");
+        const lightbox = document.getElementById("lightbox");
+        const sliderContainer = document.getElementById("slider-container");
+        
+        // Lightbox Variablen
+        let currentIndex = 0;
+        let images = [];
+        let isAnimating = false;
+        let touchStartX = 0;
+        let currentPosition = 0;
 
-portfolioData.forEach(item => {
-    const container = document.createElement("div");
-    container.className = "image-container";
-    container.innerHTML = `
-        <img src="${item.src}" alt="${item.alt}" loading="lazy">
-        <div class="overlay-text">${item.alt}</div>
-    `;
-    container.addEventListener("click", () => openLightbox(item.src, item.images));
-    portfolioGallery.appendChild(container);
-});
+        // Portfolio initialisieren
+        portfolioData.forEach(item => {
+            const container = document.createElement("div");
+            container.className = "image-container";
+            container.innerHTML = `
+                <img src="${item.src}" alt="${item.alt}" loading="lazy">
+                <div class="overlay-text">${item.alt}</div>
+            `;
+            container.addEventListener("click", () => openLightbox(item.src, item.images));
+            portfolioGallery.appendChild(container);
+        });
 
-// Lightbox-Funktionen
-let currentIndex = 0;
-let images = [];
-let nextImage = new Image(); // Für Vorladen des nächsten Bildes
-let currentPosition = 0;
-let startPos = 0;
-let isAnimating = false;
+        // Lightbox Funktionen
+        function openLightbox(imageSrc, imageList) {
+            images = imageList;
+            currentIndex = images.indexOf(imageSrc);
+            currentPosition = -currentIndex * 100;
+            
+            sliderContainer.innerHTML = '';
+            images.forEach(img => {
+                const slide = document.createElement('div');
+                slide.className = 'slider-item';
+                slide.innerHTML = `<img src="${img}" alt="Gallery Image">`;
+                sliderContainer.appendChild(slide);
+            });
 
-// Tastatursteuerung
-document.addEventListener("keydown", (event) => {
-    const lightbox = document.getElementById("lightbox");
-    if (lightbox.classList.contains("active")) {
-        if (event.key === "ArrowRight") changeImage(1);
-        if (event.key === "ArrowLeft") changeImage(-1);
-        if (event.key === "Escape") closeLightbox();
-    }
-});
+            sliderContainer.style.transform = `translateX(${currentPosition}%)`;
+            lightbox.classList.add("active");
+            document.body.style.overflow = "hidden";
+            preloadNeighbors(currentIndex);
+        }
 
-function openLightbox(imageSrc, imageList) {
-    const lightbox = document.getElementById("lightbox");
-    const sliderContainer = document.getElementById("slider-container");
-    
-    // Slider-Container leeren und neue Bilder hinzufügen
-    sliderContainer.innerHTML = '';
-    images = imageList;
-    images.forEach((img, index) => {
-        const slide = document.createElement('div');
-        slide.className = 'slider-item';
-        slide.innerHTML = `<img src="${img}" alt="Gallery Image">`;
-        sliderContainer.appendChild(slide);
-    });
+        function closeLightbox() {
+            lightbox.classList.remove("active");
+            document.body.style.overflow = "auto";
+        }
 
-    currentIndex = images.indexOf(imageSrc);
-    currentPosition = -currentIndex * 100;
-    sliderContainer.style.transform = `translateX(${currentPosition}%)`;
-    lightbox.classList.add("active");
-    document.body.style.overflow = "hidden";
-}
+        function changeImage(n) {
+            if (isAnimating) return;
+            isAnimating = true;
+            
+            currentIndex = (currentIndex + n + images.length) % images.length;
+            currentPosition = -currentIndex * 100;
+            
+            sliderContainer.style.transition = 'transform 0.3s var(--transition-timing)';
+            sliderContainer.style.transform = `translateX(${currentPosition}%)`;
+            
+            sliderContainer.addEventListener('transitionend', () => {
+                isAnimating = false;
+                preloadNeighbors(currentIndex);
+            }, { once: true });
+        }
 
-function closeLightbox() {
-    const lightbox = document.getElementById("lightbox");
-    lightbox.classList.remove("active");
-    document.body.style.overflow = "auto";
-    
-    // Reset aller Transforms
-    const lightboxImg = document.getElementById("lightbox-img");
-    lightboxImg.style.transform = "translateX(0)";
-    lightboxImg.style.opacity = "1";
-}
+        // Touch Handling
+        function handleTouchStart(e) {
+            if (isAnimating) return;
+            touchStartX = e.touches[0].clientX;
+            sliderContainer.style.transition = 'none';
+        }
 
-function changeImage(n) {
-    const newIndex = (currentIndex + n + images.length) % images.length;
-    lightboxImg.src = images[newIndex]; // Direkter Wechsel
-    currentIndex = newIndex;
-    preloadNeighbors(newIndex);
-}
+        function handleTouchMove(e) {
+            if (isAnimating) return;
+            
+            const touchX = e.touches[0].clientX;
+            const deltaX = touchX - touchStartX;
+            const movePercentage = (deltaX / window.innerWidth) * 100;
+            let newPosition = currentPosition + movePercentage;
+            
+            // Endlos-Scroll Logik
+            if (currentIndex === 0 && newPosition > 0) {
+                newPosition = -images.length * 100 + movePercentage;
+            }
+            if (currentIndex === images.length - 1 && newPosition < -currentIndex * 100) {
+                newPosition = 100 + movePercentage;
+            }
+            
+            sliderContainer.style.transform = `translateX(${newPosition}%)`;
+        }
 
-// Hilfsfunktion zum Vorladen
-function preloadNeighbors(index) {
-    const prevImg = new Image();
-    const nextImg = new Image();
-    prevImg.src = images[(index - 1 + images.length) % images.length];
-    nextImg.src = images[(index + 1) % images.length];
-}
+        function handleTouchEnd(e) {
+            if (isAnimating) return;
+            
+            const endPos = e.changedTouches[0].clientX;
+            const deltaX = endPos - touchStartX;
+            const absDelta = Math.abs(deltaX);
+            const threshold = window.innerWidth * 0.1;
+            
+            sliderContainer.style.transition = 'transform 0.3s var(--transition-timing)';
+            
+            if (absDelta > threshold) {
+                const direction = deltaX > 0 ? -1 : 1;
+                currentIndex = (currentIndex + direction + images.length) % images.length;
+            }
+            
+            currentPosition = -currentIndex * 100;
+            sliderContainer.style.transform = `translateX(${currentPosition}%)`;
+            preloadNeighbors(currentIndex);
+        }
 
-// Touch-Events für Wischfunktion
-let touchStartX = 0;
-let touchStartY = 0;
-let isSwiping = false;
-let lightboxImg = document.getElementById('lightbox-img');
+        // Hilfsfunktionen
+        function preloadNeighbors(index) {
+            const prevIndex = (index - 1 + images.length) % images.length;
+            const nextIndex = (index + 1) % images.length;
+            new Image().src = images[prevIndex];
+            new Image().src = images[nextIndex];
+        }
 
-function handleTouchStart(event) {
-    if (isAnimating) return;
-    startPos = event.touches[0].clientX;
-    currentPosition = -currentIndex * 100;
-    sliderContainer.style.transition = 'none';
-}
-
-function handleTouchMove(event) {
-    if (isAnimating) return;
-    
-    const touchX = event.touches[0].clientX;
-    const deltaX = touchX - startPos;
-    const movePercentage = (deltaX / window.innerWidth) * 100;
-    
-    let newPosition = currentPosition + movePercentage;
-    
-    // Endlos-Loop Logik
-    if (currentIndex === 0 && newPosition > 0) {
-        newPosition = -images.length * 100 + movePercentage;
-    }
-    if (currentIndex === images.length - 1 && newPosition < -currentIndex * 100) {
-        newPosition = 100 + movePercentage;
-    }
-    
-    sliderContainer.style.transform = `translateX(${newPosition}%)`;
-}
-
-function handleTouchEnd(event) {
-    if (isAnimating) return;
-    
-    const endPos = event.changedTouches[0].clientX;
-    const deltaX = endPos - startPos;
-    const absDelta = Math.abs(deltaX);
-    const threshold = window.innerWidth * 0.1;
-    
-    sliderContainer.style.transition = 'transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1)';
-    
-    if (absDelta > threshold) {
-        const direction = deltaX > 0 ? -1 : 1;
-        currentIndex = (currentIndex + direction + images.length) % images.length;
-    }
-    
-    currentPosition = -currentIndex * 100;
-    sliderContainer.style.transform = `translateX(${currentPosition}%)`;
-    preloadNeighbors(currentIndex);
-}
-
-
-// Event-Listener aktualisieren
-const lightbox = document.getElementById('lightbox');
-lightbox.addEventListener('touchstart', handleTouchStart);
-lightbox.addEventListener('touchmove', handleTouchMove);
-lightbox.addEventListener('touchend', handleTouchEnd);
-
+        // Event Listener
+        lightbox.addEventListener('touchstart', handleTouchStart);
+        lightbox.addEventListener('touchmove', handleTouchMove);
+        lightbox.addEventListener('touchend', handleTouchEnd);
+        lightbox.addEventListener('click', (e) => e.target === lightbox && closeLightbox());
+        
+        document.addEventListener('keydown', (e) => {
+            if (lightbox.classList.contains('active')) {
+                if (e.key === 'ArrowLeft') changeImage(-1);
+                if (e.key === 'ArrowRight') changeImage(1);
+                if (e.key === 'Escape') closeLightbox();
+            }
+        });
     </script>
-</body>
-</html>
 </body>
 </html>

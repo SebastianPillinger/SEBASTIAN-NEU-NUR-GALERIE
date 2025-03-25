@@ -76,6 +76,7 @@
             height: 100%;
             width: 100%;
             will-change: transform;
+			pointer-events: none; /* Ermöglicht Klicks durch den Container */
         }
 
         .slider-item {
@@ -85,6 +86,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+			pointer-events: auto; /* Interaktion mit Inhalten ermöglichen */
         }
 
         .slider-item img {
@@ -93,6 +95,7 @@
             object-fit: contain;
             border-radius: 5px;
             transition: none !important; /* Keine Übergänge für abrupte Wechsel */
+			cursor: default; /* Standard-Cursor für Bilder */
         }
 
         .lightbox-arrow {
@@ -106,6 +109,7 @@
             padding: 10px 20px;
             z-index: 1001;
             transition: opacity 0.2s;
+			pointer-events: auto; /* Interaktion mit Inhalten ermöglichen */
         }
 
         .lightbox-arrow:hover {
@@ -125,7 +129,7 @@
     <div class="lightbox" id="lightbox">
         <div class="slider-container" id="slider-container"></div>
         <span class="lightbox-arrow left" onclick="event.stopPropagation(); changeImage(-1)">&#10094;</span>
-        <span class="lightbox-arrow right" onclick="event.stopPropagation(); changeImage(1)">&#10095;</span>
+		<span class="lightbox-arrow right" onclick="event.stopPropagation(); changeImage(1)">&#10095;</span>
     </div>
 
     <script>
@@ -289,9 +293,16 @@
             }
         });
 		
-		// Klick außerhalb schließt Lightbox
+		// Klick schließt Lightbox
         lightbox.addEventListener('click', (e) => {
-            if(e.target === lightbox) closeLightbox();
+        closeLightbox();
+		});
+		
+		// Pfeil-Buttons mit Propagation-Stop
+        document.querySelectorAll('.lightbox-arrow').forEach(arrow => {
+            arrow.addEventListener('click', e => {
+                e.stopPropagation();
+            });
         });
 		
 		// Pfeil-Buttons mit abruptem Wechsel

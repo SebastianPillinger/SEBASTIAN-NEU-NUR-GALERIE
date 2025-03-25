@@ -73,6 +73,7 @@ body {
     opacity: 0;
     transition: opacity 0.3s ease;
     touch-action: none; /* Verhindert Standard-Touch-Verhalten wie Scrollen */
+	overflow: hidden;
 }
 
 .lightbox.active {
@@ -88,6 +89,23 @@ body {
     touch-action: none;
     will-change: transform; /* Optimiert die Animation */
 	z-index: 1000;
+}
+
+.slider-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    will-change: transform;
+    transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.slider-item {
+    flex: 0 0 100%;
+    min-width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .lightbox img.slide-left {
@@ -135,11 +153,11 @@ body {
         </div>
     </section>
 	
-	<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-		<span class="lightbox-arrow left" onclick="event.stopPropagation(); changeImage(-1)">&#10094;</span>
-		<img src="" alt="Vergrößertes Bild" id="lightbox-img">
-		<span class="lightbox-arrow right" onclick="event.stopPropagation(); changeImage(1)">&#10095;</span>
-	</div>
+	<div class="lightbox" id="lightbox">
+    <div class="slider-container" id="slider-container"></div>
+    <span class="lightbox-arrow left" onclick="event.stopPropagation(); changeImage(-1)">&#10094;</span>
+    <span class="lightbox-arrow right" onclick="event.stopPropagation(); changeImage(1)">&#10095;</span>
+</div>
 	
     <script>
         // Dynamisches Laden der Portfolio-Bilder
@@ -169,6 +187,9 @@ portfolioData.forEach(item => {
 let currentIndex = 0;
 let images = [];
 let nextImage = new Image(); // Für Vorladen des nächsten Bildes
+let currentPosition = 0;
+let startPos = 0;
+let isAnimating = false;
 
 // Tastatursteuerung
 document.addEventListener("keydown", (event) => {
@@ -182,16 +203,23 @@ document.addEventListener("keydown", (event) => {
 
 function openLightbox(imageSrc, imageList) {
     const lightbox = document.getElementById("lightbox");
-    const lightboxImg = document.getElementById("lightbox-img");
-    lightboxImg.style.opacity = "1"; // Sicherstellen, dass Bild sichtbar ist
-    lightboxImg.src = imageSrc;
-    lightbox.classList.add("active");
-    images = imageList;
-    currentIndex = images.indexOf(imageSrc);
-    document.body.style.overflow = "hidden";
+    const sliderContainer = document.getElementById("slider-container");
     
-    // Vorladen der Nachbarbilder
-    preloadNeighbors(currentIndex);
+    // Slider-Container leeren und neue Bilder hinzufügen
+    sliderContainer.innerHTML = '';
+    images = imageList;
+    images.forEach((img, index) => {
+        const slide = document.createElement('div');
+        slide.className = 'slider-item';
+        slide.innerHTML = `<img src="${img}" alt="Gallery Image">`;
+        sliderContainer.appendChild(slide);
+    });
+
+    currentIndex = images.indexOf(imageSrc);
+    currentPosition = -currentIndex * 100;
+    sliderContainer.style.transform = `translateX(${currentPosition}%)`;
+    lightbox.classList.add("active");
+    document.body.style.overflow = "hidden";
 }
 
 function closeLightbox() {
@@ -227,77 +255,58 @@ let isSwiping = false;
 let lightboxImg = document.getElementById('lightbox-img');
 
 function handleTouchStart(event) {
-    touchStartX = event.touches[0].clientX;
-    touchStartY = event.touches[0].clientY;
-    isSwiping = true;
-    lightboxImg.style.transition = 'none'; // Keine Animation während des Swipens
+    if (isAnimating) return;
+    startPos = event.touches[0].clientX;
+    currentPosition = -currentIndex * 100;
+    sliderContainer.style.transition = 'none';
 }
 
 function handleTouchMove(event) {
-    if (!isSwiping) return;
-
-    const touchCurrentX = event.touches[0].clientX;
-    const touchCurrentY = event.touches[0].clientY;
-    const deltaX = touchCurrentX - touchStartX;
-    const deltaY = touchCurrentY - touchStartY;
-
-    // Primäre Richtung ermitteln
-    const isVertical = Math.abs(deltaY) > Math.abs(deltaX);
-
-    if (isVertical) {
-        // Vertikales Wischen - mit Dämpfungseffekt
-        const dampenedDelta = deltaY * 0.5; // Reduziert die Bewegung um 50%
-        lightboxImg.style.transform = `translateY(${dampenedDelta}px)`;
-        return;
+    if (isAnimating) return;
+    
+    const touchX = event.touches[0].clientX;
+    const deltaX = touchX - startPos;
+    const movePercentage = (deltaX / window.innerWidth) * 100;
+    
+    let newPosition = currentPosition + movePercentage;
+    
+    // Endlos-Loop Logik
+    if (currentIndex === 0 && newPosition > 0) {
+        newPosition = -images.length * 100 + movePercentage;
     }
-
-    // Horizontales Wischen mit Begrenzung
-    const maxDelta = window.innerWidth * 0.2;
-    const limitedDelta = Math.sign(deltaX) * Math.min(Math.abs(deltaX), maxDelta);
-    lightboxImg.style.transform = `translateX(${limitedDelta}px)`;
+    if (currentIndex === images.length - 1 && newPosition < -currentIndex * 100) {
+        newPosition = 100 + movePercentage;
+    }
+    
+    sliderContainer.style.transform = `translateX(${newPosition}%)`;
 }
 
 function handleTouchEnd(event) {
-    if (!isSwiping) return;
-
-    const deltaX = event.changedTouches[0].clientX - touchStartX;
-    const deltaY = event.changedTouches[0].clientY - touchStartY;
-    const isVertical = Math.abs(deltaY) > Math.abs(deltaX);
-
-    // Zurücksetzen der Position
-    lightboxImg.style.transform = 'translate(0, 0)';
+    if (isAnimating) return;
     
-    // Zuerst vertikales Wischen prüfen
-    if (isVertical) {
-        if (Math.abs(deltaY) > 100) {
-            closeLightbox();
-        }
-        return; // Vertikale Aktion beendet hier
-    }
-
-    // Horizontales Wischen verarbeiten
-    const absDeltaX = Math.abs(deltaX);
-    const maxDelta = window.innerWidth * 0.1;
-
-    if (absDeltaX >= maxDelta) {
-        const direction = Math.sign(deltaX);
-        changeImage(-direction);
-        return;
-    }
-
-    if (absDeltaX > 100) {
+    const endPos = event.changedTouches[0].clientX;
+    const deltaX = endPos - startPos;
+    const absDelta = Math.abs(deltaX);
+    const threshold = window.innerWidth * 0.1;
+    
+    sliderContainer.style.transition = 'transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1)';
+    
+    if (absDelta > threshold) {
         const direction = deltaX > 0 ? -1 : 1;
-        changeImage(direction);
+        currentIndex = (currentIndex + direction + images.length) % images.length;
     }
-
-    isSwiping = false;
+    
+    currentPosition = -currentIndex * 100;
+    sliderContainer.style.transform = `translateX(${currentPosition}%)`;
+    preloadNeighbors(currentIndex);
 }
 
-// Event-Listener
+
+// Event-Listener aktualisieren
 const lightbox = document.getElementById('lightbox');
-lightbox.addEventListener('touchstart', handleTouchStart, { passive: false });
-lightbox.addEventListener('touchmove', handleTouchMove, { passive: false });
-lightbox.addEventListener('touchend', handleTouchEnd, { passive: true });
+lightbox.addEventListener('touchstart', handleTouchStart);
+lightbox.addEventListener('touchmove', handleTouchMove);
+lightbox.addEventListener('touchend', handleTouchEnd);
 
     </script>
 </body>
